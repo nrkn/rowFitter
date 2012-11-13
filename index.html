@@ -1,0 +1,286 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Column Fitter</title>
+    <style>
+* {
+  margin: 0;
+  padding: 0;
+}      
+
+html {
+  background: #eee;
+}
+
+body {
+  background: #fff;
+  width: 65em;
+  margin: auto;
+  padding: 1em;
+}
+
+img {
+  display: block;
+  width: 100%;
+}
+
+.grid {
+  background: #ddd;
+  padding: 1em;
+  margin: 2em 0;
+}
+
+.row {
+  overflow: hidden;
+}
+
+.column {
+  position: relative;
+  float: left;
+}
+
+.column .number {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  padding: 0.25em;
+  color: #fff;
+  font-family: sans-serif;
+  font-size: 400%;
+  font-weight: bold;
+  text-shadow: 0 3px 5px #000;
+}
+
+.column img {
+  position: relative;
+  z-index: 1;
+}
+
+th, td {
+  border: 1px dotted #ccc;
+}
+    </style>
+    <script src="http://code.jquery.com/jquery-1.7.2.min.js"></script>
+    <script src="rowFitter.js"></script>
+    <script>
+$(document).ready(function(){
+  $( '#images' ).hide();
+  
+  var min = 4,
+      max = 5,
+      count = 30,
+      groupCollections = [];
+  
+  function randomImage() {
+    var img = $( '<img />' );
+    img.attr( 
+      'src', 
+      $( '#image-' + Math.floor( ( Math.random() * 7 ) + 1 ) ).attr( 'src' )
+    );
+    return img;
+  }
+  
+  function getNumber( i ) {
+    return $( '<div class="number">' + i + '</div>' );
+  }
+  
+  function getColumn( count, total ) {
+    var column = $( '<div class="column" />' );
+    column.html( randomImage() );
+    column.append( getNumber( total ) );
+    column.css({
+      'width': ( 100 / count ) + '%'
+    });
+    return column;    
+  }
+  
+  function getRow( count, total ) {
+    var row = $( '<div class="row" />' );
+    for( var i = 0; i < count; i++ ) {
+      row.append( getColumn( count, total ) );
+    }
+    return row;
+  }
+  
+  function getRows( desired, total ) {
+    var groups = rowFitter( desired, min, max );
+    groupCollections.push( groups );
+    var container = $( '<div />' );
+    for( var i = 0; i < groups.length; i++ ) {
+      container.append( getRow( groups[ i ], total ) );
+    }
+    return container;
+  }
+  
+  function getGrid( i ) {
+    var grid = $( '<div class="grid" />' );        
+    grid.html( getRows( i, i ) );            
+    return grid;  
+  }
+  
+  for( var i = 1; i <= count; i++ ) {
+    $( 'body' ).append( getGrid( i ) );
+  }
+  
+  
+ 
+  /*
+  var table = $( 'table' ),
+      sweet = max * ( max - 3 );
+  
+  
+  
+  function getHeaderRow( ) {
+    var tr = $( '<tr><td></td></tr>' );
+    
+    for( var max = 4; max <= count; max ++ ) {
+      var th = $( '<th>' + max + '</th>' );
+      tr.append( th );
+    }    
+    
+    return tr;
+  }
+  */
+  
+  /*
+  function getTds( i, min, max, minTr, maxTr ) {
+    var groups = rowFitter( i, min, max ),
+        minCount = groups.filter(function(e){ return e === min; } ).length,
+        maxCount = groups.filter(function(e){ return e === max; } ).length,
+        minTd = $( '<td></td>' ),     
+        maxTd = $( '<td></td>' );
+        
+    minTd.html( i < sweet ? '-' : minCount );
+    maxTd.html( i < sweet ? '-' : maxCount );
+    
+    minTr.append( minTd );
+    maxTr.append( maxTd );  
+  }
+  
+  function getMinMaxes( max ) {
+    sweet = max * ( max - 3 );
+    var min = max - 1;
+    var minTr = $( '<tr><th>' + min + '</th></tr>' ),
+        maxTr = $( '<tr><th>' + max + '</th></tr>' );
+
+    for( var i = min; i <= count; i++ ) {
+      getTds( i, min, max, minTr, maxTr );
+    }  
+    
+    table.append( getHeaderRow() );    
+    table.append( maxTr );
+    table.append( minTr );
+  }
+  
+  getMinMaxes( 4 );
+  
+  //for( var max = 4; max < 11; max ++ ) {    
+  //  getMinMaxes( max );
+  //}
+  */
+  /*
+  function rowIsSweet( group, max ) {
+    var sweet = true;
+    for( var i = 0; i < group.length; i++ ) {
+      sweet = sweet && group[ i ] === max - 1 || group[ i ] === max;      
+    }
+    return sweet;
+  }
+  
+  function getSweet( max ) {
+    return ( max - 2 ) * ( max - 1 );
+  }
+  
+  function getMinMaxInfo( min, max ) {
+    var info = {},
+        sweetPoint = 0;
+    
+    for( var i = 1; i <= count; i++ ) {
+      var group = rowFitter( i, min, max ),
+          minCount = group.filter(function(e){ return e === max - 1; }).length,
+          maxCount = group.filter(function(e){ return e === max; }).length,
+          sweet = rowIsSweet( group, max );
+      
+      if( !sweet ) {
+        sweetPoint = i;  
+      }
+          
+      info[ i ] = {
+        itemCount: i,
+        rowCount: group.length,
+        maxRows: {
+          rowItemCount: max,
+          count: maxCount
+        },
+        minRows: {
+          rowItemCount: max - 1,
+          count: minCount
+        },
+        sweet: sweet
+      };
+    }
+    info.sweetPoint = sweetPoint;
+    return info;
+  }
+  
+  //$( 'body' ).append( $( '<pre>' + JSON.stringify( getMinMaxInfo( min, max ), null, 2 ) + '</pre>' ) );
+  var body = $( 'body' );
+  
+  function addToTable( table, min, max ) {
+    //header
+    var headerTr = $( '<tr><td></td></tr>' );
+    for( var i = 1; i <= count; i++ ) {
+      var headerTh = $( '<th>' + i + '</th>' );
+      headerTr.append( headerTh );
+    }    
+    table.append( headerTr );
+    
+    var info = getMinMaxInfo( min, max );
+    
+    //add max row
+    var maxTr = $( '<tr><th>' + max + '</th></tr>' );
+    
+    var sweet = getSweet( max );
+    
+    for( var i = 1; i <= count; i++ ) {
+      var data = info[ i ];
+      var style = ( i >= sweet ? ' style="color: green;"' : ' style="color: red;"' );       
+      var td = $( '<td' + style + '>' + ( data.maxRows.count ) + '</td>' );
+      maxTr.append( td );
+    }
+    table.append( maxTr );
+    
+    //add min row
+    var minTr = $( '<tr><th>' + ( max - 1 ) + '</th></tr>' );
+    for( var i = 1; i <= count; i++ ) {
+      var data = info[ i ];      
+      var style = ( i >= sweet ? ' style="color: green;"' : ' style="color: red;"' );       
+      var td = $( '<td' + style + '>' + ( data.minRows.count ) + '</td>' );
+      minTr.append( td );
+    }
+    table.append( minTr );
+  }
+  var table = $( '<table />' );
+  for( var max = 2; max < 11; max++ ) {
+    var min = max - 1;
+    addToTable( table, min, max );    
+  }
+  body.append( table );
+  */
+});    
+    </script>
+  </head>
+  <body>
+    <div id="images">
+      <img id="image-1" src="1.jpg" />
+      <img id="image-2" src="2.jpg" />
+      <img id="image-3" src="3.jpg" />
+      <img id="image-4" src="4.jpg" />
+      <img id="image-5" src="5.jpg" />
+      <img id="image-6" src="6.jpg" />
+      <img id="image-7" src="7.jpg" />
+    </div>
+  </body>
+</html>
